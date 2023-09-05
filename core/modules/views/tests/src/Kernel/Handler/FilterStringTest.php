@@ -71,7 +71,7 @@ class FilterStringTest extends ViewsKernelTestBase {
   /**
    * Build and return a Page view of the views_test_data table.
    *
-   * @return \Drupal\views\ViewExecutable
+   * @return view
    */
   protected function getBasicPageView() {
     $view = Views::getView('test_view');

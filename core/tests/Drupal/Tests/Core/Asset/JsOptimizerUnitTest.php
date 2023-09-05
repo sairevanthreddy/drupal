@@ -111,14 +111,6 @@ class JsOptimizerUnitTest extends UnitTestCase {
         ],
         file_get_contents($path . 'latin_9.js.optimized.js'),
       ],
-      3 => [
-        [
-          'type' => 'file',
-          'preprocess' => TRUE,
-          'data' => $path . 'to_be_minified.js',
-        ],
-        file_get_contents($path . 'to_be_minified.js.optimized.js'),
-      ],
     ];
   }
 

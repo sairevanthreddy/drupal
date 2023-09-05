@@ -102,7 +102,7 @@ $out = '';
 foreach ($countries as $code => $name) {
   // For .po translation file's sake, use double-quotes instead of escaped
   // single-quotes.
-  $name = str_contains($name, '\'' ? '"' . $name . '"' : "'" . $name . "'");
+  $name = (strpos($name, '\'') !== FALSE ? '"' . $name . '"' : "'" . $name . "'");
   $out .= '      ' . var_export($code, TRUE) . ' => t(' . $name . '),' . "\n";
 }
 

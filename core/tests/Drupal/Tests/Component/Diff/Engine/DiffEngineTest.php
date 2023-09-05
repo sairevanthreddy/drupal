@@ -8,7 +8,6 @@ use Drupal\Component\Diff\Engine\DiffOpCopy;
 use Drupal\Component\Diff\Engine\DiffOpChange;
 use Drupal\Component\Diff\Engine\DiffOpDelete;
 use PHPUnit\Framework\TestCase;
-use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 
 /**
  * Test DiffEngine class.
@@ -16,11 +15,8 @@ use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
  * @coversDefaultClass \Drupal\Component\Diff\Engine\DiffEngine
  *
  * @group Diff
- * @group legacy
  */
 class DiffEngineTest extends TestCase {
-
-  use ExpectDeprecationTrait;
 
   /**
    * @return array
@@ -80,7 +76,6 @@ class DiffEngineTest extends TestCase {
    * @dataProvider provideTestDiff
    */
   public function testDiff($expected, $from, $to) {
-    $this->expectDeprecation('Drupal\Component\Diff\Engine\DiffEngine is deprecated in drupal:10.1.0 and is removed from drupal:11.0.0. Use sebastianbergmann/diff instead. See https://www.drupal.org/node/3337942');
     $diff_engine = new DiffEngine();
     $diff = $diff_engine->diff($from, $to);
     // Make sure we have the same number of results as expected.
@@ -97,7 +92,6 @@ class DiffEngineTest extends TestCase {
    * @covers ::diff
    */
   public function testDiffInfiniteLoop() {
-    $this->expectDeprecation('Drupal\Component\Diff\Engine\DiffEngine is deprecated in drupal:10.1.0 and is removed from drupal:11.0.0. Use sebastianbergmann/diff instead. See https://www.drupal.org/node/3337942');
     $from = explode("\n", file_get_contents(__DIR__ . '/fixtures/file1.txt'));
     $to = explode("\n", file_get_contents(__DIR__ . '/fixtures/file2.txt'));
     $diff_engine = new DiffEngine();

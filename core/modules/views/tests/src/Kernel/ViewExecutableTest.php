@@ -395,6 +395,7 @@ class ViewExecutableTest extends ViewsKernelTestBase {
    */
   protected function getProtectedProperty($instance, $property) {
     $reflection = new \ReflectionProperty($instance, $property);
+    $reflection->setAccessible(TRUE);
     return $reflection->getValue($instance);
   }
 
@@ -445,7 +446,7 @@ class ViewExecutableTest extends ViewsKernelTestBase {
     $count = 0;
     foreach ($view->displayHandlers as $id => $display) {
       $match = function ($value) use ($display) {
-        return str_contains($value, $display->display['display_title']);
+        return strpos($value, $display->display['display_title']) !== FALSE;
       };
       $this->assertNotEmpty(array_filter($validate[$id], $match), new FormattableMarkup('Error message found for @id display', ['@id' => $id]));
       $count++;

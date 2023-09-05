@@ -159,7 +159,7 @@ class ThemeInstallerTest extends KernelTestBase {
   /**
    * Tests trying to install a deprecated theme.
    *
-   * @covers \Drupal\Core\Extension\ThemeInstaller::install
+   * @covers ::install
    *
    * @group legacy
    */

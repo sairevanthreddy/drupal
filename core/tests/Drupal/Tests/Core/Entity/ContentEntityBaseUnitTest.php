@@ -127,8 +127,6 @@ class ContentEntityBaseUnitTest extends UnitTestCase {
    * {@inheritdoc}
    */
   protected function setUp(): void {
-    parent::setUp();
-
     $this->id = 1;
     $values = [
       'id' => $this->id,
@@ -489,7 +487,7 @@ class ContentEntityBaseUnitTest extends UnitTestCase {
     // that trying to save a non-validated entity when validation is required
     // results in an exception.
     $this->assertTrue($this->entity->isValidationRequired());
-    $this->expectException(\AssertionError::class);
+    $this->expectException(\LogicException::class);
     $this->expectExceptionMessage('Entity validation was skipped.');
     $this->entity->save();
   }
@@ -573,10 +571,12 @@ class ContentEntityBaseUnitTest extends UnitTestCase {
 
     // Poke in activeLangcode.
     $ref_langcode = new \ReflectionProperty($mock_base, 'activeLangcode');
+    $ref_langcode->setAccessible(TRUE);
     $ref_langcode->setValue($mock_base, $active_langcode);
 
     // Poke in fields.
     $ref_fields = new \ReflectionProperty($mock_base, 'fields');
+    $ref_fields->setAccessible(TRUE);
     $ref_fields->setValue($mock_base, $fields);
 
     // Exercise get().

@@ -317,7 +317,6 @@ class Renderer implements RendererInterface {
     if (isset($elements['#lazy_builder'])) {
       assert(is_array($elements['#lazy_builder']), 'The #lazy_builder property must have an array as a value.');
       assert(count($elements['#lazy_builder']) === 2, 'The #lazy_builder property must have an array as a value, containing two values: the callback, and the arguments for the callback.');
-      assert(is_array($elements['#lazy_builder'][1]), 'The #lazy_builder argument for callback must have an array as a value.');
       assert(count($elements['#lazy_builder'][1]) === count(array_filter($elements['#lazy_builder'][1], function ($v) {
         return is_null($v) || is_scalar($v);
       })), "A #lazy_builder callback's context may only contain scalar values or NULL.");
@@ -326,8 +325,6 @@ class Renderer implements RendererInterface {
         '#lazy_builder',
         '#cache',
         '#create_placeholder',
-        '#lazy_builder_preview',
-        '#preview',
         // The keys below are not actually supported, but these are added
         // automatically by the Renderer. Adding them as though they are
         // supported allows us to avoid throwing an exception 100% of the time.
@@ -581,7 +578,10 @@ class Renderer implements RendererInterface {
     // Set the provided context and call the callable, it will use that context.
     $this->setCurrentRenderContext($context);
     $result = $callable();
-    assert($context->count() <= 1, 'Bubbling failed.');
+    // @todo Convert to an assertion in https://www.drupal.org/node/2408013
+    if ($context->count() > 1) {
+      throw new \LogicException('Bubbling failed.');
+    }
 
     // Restore the original render context.
     $this->setCurrentRenderContext($previous_context);
