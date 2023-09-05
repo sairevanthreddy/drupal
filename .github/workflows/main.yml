@@ -20,13 +20,13 @@ jobs:
           whoami
           echo "${{ secrets.DRUPAL_EC2_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa    
-          ssh-keyscan 54.173.25.138 >> /home/runner/.ssh/known_hosts
+          ssh-keyscan 54.87.102.141 >> /home/runner/.ssh/known_hosts
           cat '/home/runner/.ssh/known_hosts'
           echo "end of ssh key setup"
       - name: Connect to EC2 and Run Commands
         run: |
-          ssh -vvv -o StrictHostKeyChecking=no root@54.173.25.138
+          ssh -vvv -o StrictHostKeyChecking=no root@54.87.102.141
           echo "connection made"
       - name: Connect to EC2 and Copy Files
         run: |
-          ssh -vvv -o StrictHostKeyChecking=no root@54.173.25.138 "mkdir -p /var/www/html && cd /var/www/html && rm -rf * && git init && git clone https://github.com/sairevanthreddy/drupal.git && cp /var/settings.php /var/www/html/drupal/sites/default && cd /var/www/html/drupal && chmod +x dp.sh && ./dp.sh"
+          ssh -vvv -o StrictHostKeyChecking=no root@54.87.102.141 "mkdir -p /var/www/html && cd /var/www/html && rm -rf * && git init && git clone https://github.com/sairevanthreddy/drupal.git && cp /var/settings.php /var/www/html/drupal/sites/default && cd /var/www/html/drupal && chmod +x dp.sh && ./dp.sh"
