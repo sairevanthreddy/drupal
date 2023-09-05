@@ -29,4 +29,4 @@ jobs:
           echo "connection made"
       - name: Connect to EC2 and Copy Files
         run: |
-          ssh -vvv -o StrictHostKeyChecking=no root@54.173.25.138 "mkdir -p /var/www/html && cd /var/www/html && rm -rf * && git init && git clone https://github.com/sairevanthreddy/drupal.git"
+          ssh -vvv -o StrictHostKeyChecking=no root@54.173.25.138 "mkdir -p /var/www/html && cd /var/www/html && rm -rf * && git init && git clone https://github.com/sairevanthreddy/drupal.git && cp /var/settings.php /var/www/html/drupal/sites/default"
