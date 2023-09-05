@@ -26,6 +26,7 @@ use Symfony\Component\DependencyInjection\Reference;
 class DefinitionErrorExceptionPass extends AbstractRecursivePass
 {
     private $erroredDefinitions = [];
+    private $targetReferences = [];
     private $sourceReferences = [];
 
     /**
@@ -36,10 +37,45 @@ class DefinitionErrorExceptionPass extends AbstractRecursivePass
         try {
             parent::process($container);
 
-            $visitedIds = [];
+            if (!$this->erroredDefinitions) {
+                return;
+            }
+
+            $runtimeIds = [];
+
+            foreach ($this->sourceReferences as $id => $sourceIds) {
+                foreach ($sourceIds as $sourceId => $isRuntime) {
+                    if (!$isRuntime) {
+                        continue 2;
+                    }
+                }
+
+                unset($this->erroredDefinitions[$id]);
+                $runtimeIds[$id] = $id;
+            }
+
+            if (!$this->erroredDefinitions) {
+                return;
+            }
+
+            foreach ($this->targetReferences as $id => $targetIds) {
+                if (!isset($this->sourceReferences[$id]) || isset($runtimeIds[$id]) || isset($this->erroredDefinitions[$id])) {
+                    continue;
+                }
+                foreach ($this->targetReferences[$id] as $targetId => $isRuntime) {
+                    foreach ($this->sourceReferences[$id] as $sourceId => $isRuntime) {
+                        if ($sourceId !== $targetId) {
+                            $this->sourceReferences[$targetId][$sourceId] = false;
+                            $this->targetReferences[$sourceId][$targetId] = false;
+                        }
+                    }
+                }
+
+                unset($this->sourceReferences[$id]);
+            }
 
             foreach ($this->erroredDefinitions as $id => $definition) {
-                if ($this->isErrorForRuntime($id, $visitedIds)) {
+                if (isset($this->sourceReferences[$id])) {
                     continue;
                 }
 
@@ -50,6 +86,7 @@ class DefinitionErrorExceptionPass extends AbstractRecursivePass
             }
         } finally {
             $this->erroredDefinitions = [];
+            $this->targetReferences = [];
             $this->sourceReferences = [];
         }
     }
@@ -65,8 +102,10 @@ class DefinitionErrorExceptionPass extends AbstractRecursivePass
         if ($value instanceof Reference && $this->currentId !== $targetId = (string) $value) {
             if (ContainerInterface::RUNTIME_EXCEPTION_ON_INVALID_REFERENCE === $value->getInvalidBehavior()) {
                 $this->sourceReferences[$targetId][$this->currentId] ??= true;
+                $this->targetReferences[$this->currentId][$targetId] ??= true;
             } else {
                 $this->sourceReferences[$targetId][$this->currentId] = false;
+                $this->targetReferences[$this->currentId][$targetId] = false;
             }
 
             return $value;
@@ -79,30 +118,5 @@ class DefinitionErrorExceptionPass extends AbstractRecursivePass
         $this->erroredDefinitions[$this->currentId] = $value;
 
         return parent::processValue($value);
-    }
-
-    private function isErrorForRuntime(string $id, array &$visitedIds): bool
-    {
-        if (!isset($this->sourceReferences[$id])) {
-            return false;
-        }
-
-        if (isset($visitedIds[$id])) {
-            return $visitedIds[$id];
-        }
-
-        $visitedIds[$id] = true;
-
-        foreach ($this->sourceReferences[$id] as $sourceId => $isRuntime) {
-            if ($visitedIds[$sourceId] ?? $visitedIds[$sourceId] = $this->isErrorForRuntime($sourceId, $visitedIds)) {
-                continue;
-            }
-
-            if (!$isRuntime) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }
