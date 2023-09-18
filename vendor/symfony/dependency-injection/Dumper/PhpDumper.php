@@ -12,7 +12,6 @@
 namespace Symfony\Component\DependencyInjection\Dumper;
 
 use Composer\Autoload\ClassLoader;
-use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\Argument\AbstractArgument;
 use Symfony\Component\DependencyInjection\Argument\ArgumentInterface;
 use Symfony\Component\DependencyInjection\Argument\IteratorArgument;
@@ -582,23 +581,8 @@ EOF;
                 continue;
             }
             $alreadyGenerated[$asGhostObject][$class] = true;
-
-            foreach (array_column($definition->getTag('proxy'), 'interface') ?: [$class] as $r) {
-                if (!$r = $this->container->getReflectionClass($r)) {
-                    continue;
-                }
-                do {
-                    $file = $r->getFileName();
-                    if (str_ends_with($file, ') : eval()\'d code')) {
-                        $file = substr($file, 0, strrpos($file, '(', -17));
-                    }
-                    if (is_file($file)) {
-                        $this->container->addResource(new FileResource($file));
-                    }
-                    $r = $r->getParentClass() ?: null;
-                } while ($r?->isUserDefined());
-            }
-
+            // register class' reflector for resource tracking
+            $this->container->getReflectionClass($class);
             if ("\n" === $proxyCode = "\n".$proxyDumper->getProxyCode($definition, $id)) {
                 continue;
             }
@@ -928,10 +912,10 @@ EOF;
                 if (!$definition->isShared()) {
                     $code .= sprintf('        %s ??= ', $factory);
 
-                    if ($definition->isPublic()) {
-                        $code .= sprintf("fn () => self::%s(\$container);\n\n", $asFile ? 'do' : $methodName);
+                    if ($asFile) {
+                        $code .= "self::do(...);\n\n";
                     } else {
-                        $code .= sprintf("self::%s(...);\n\n", $asFile ? 'do' : $methodName);
+                        $code .= sprintf("self::%s(...);\n\n", $methodName);
                     }
                 }
                 $lazyLoad = $asGhostObject ? '$proxy' : 'false';
