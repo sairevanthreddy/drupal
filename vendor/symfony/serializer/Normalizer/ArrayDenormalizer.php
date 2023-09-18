@@ -58,15 +58,14 @@ class ArrayDenormalizer implements ContextAwareDenormalizerInterface, Denormaliz
 
         $type = substr($type, 0, -2);
 
-        $builtinTypes = array_map(static function (Type $keyType) {
-            return $keyType->getBuiltinType();
-        }, \is_array($keyType = $context['key_type'] ?? []) ? $keyType : [$keyType]);
-
+        $builtinType = isset($context['key_type']) ? $context['key_type']->getBuiltinType() : null;
         foreach ($data as $key => $value) {
             $subContext = $context;
             $subContext['deserialization_path'] = ($context['deserialization_path'] ?? false) ? sprintf('%s[%s]', $context['deserialization_path'], $key) : "[$key]";
 
-            $this->validateKeyType($builtinTypes, $key, $subContext['deserialization_path']);
+            if (null !== $builtinType && !('is_'.$builtinType)($key)) {
+                throw NotNormalizableValueException::createForUnexpectedDataType(sprintf('The type of the key "%s" must be "%s" ("%s" given).', $key, $builtinType, get_debug_type($key)), $key, [$builtinType], $subContext['deserialization_path'] ?? null, true);
+            }
 
             $data[$key] = $this->denormalizer->denormalize($value, $type, $format, $subContext);
         }
@@ -92,23 +91,5 @@ class ArrayDenormalizer implements ContextAwareDenormalizerInterface, Denormaliz
         trigger_deprecation('symfony/serializer', '6.3', 'The "%s()" method is deprecated, use "getSupportedTypes()" instead.', __METHOD__);
 
         return $this->denormalizer instanceof CacheableSupportsMethodInterface && $this->denormalizer->hasCacheableSupportsMethod();
-    }
-
-    /**
-     * @param mixed $key
-     */
-    private function validateKeyType(array $builtinTypes, $key, string $path): void
-    {
-        if (!$builtinTypes) {
-            return;
-        }
-
-        foreach ($builtinTypes as $builtinType) {
-            if (('is_'.$builtinType)($key)) {
-                return;
-            }
-        }
-
-        throw NotNormalizableValueException::createForUnexpectedDataType(sprintf('The type of the key "%s" must be "%s" ("%s" given).', $key, implode('", "', $builtinTypes), get_debug_type($key)), $key, $builtinTypes, $path, true);
     }
 }
